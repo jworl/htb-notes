@@ -177,4 +177,5 @@ print(RESPONSE.text)
 ```
 
 This reverse shell payload can be executed against the SuperSecureServer.py service running on tcp/8080.
-![Reverse Shell Exec]("https://github.com/jworl/htb-notes/blob/master/Obscurity/Screen%20Shot%202020-03-08%20at%202.16.11%20PM.png")
+
+<img src="Obscurity/Screen Shot 2020-03-08 at 2.16.11 PM.png" alt="Example execution of reverse shell code">
