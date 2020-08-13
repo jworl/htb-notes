@@ -146,7 +146,7 @@ print(RESPONSE.text)
 ```
 
 This reverse shell payload can be executed against the SuperSecureServer.py service running on tcp/8080.<br>
-<img src="https://github.com/jworl/htb-notes/blob/master/Obscurity/Screen%20Shot%202020-03-08%20at%202.16.11%20PM.png?raw=true"><br>
+<img src="Screen%20Shot%202020-03-08%20at%202.16.11%20PM.png"><br>
 
 And now we have a foothold on the account running SuperSecureServer.py as a service. Now the real fun begins.
 
@@ -399,7 +399,7 @@ I suspect my BASH logic was incorrect in some places, but it went something like
 original=$(md5sum out.txt | awk '{ print $1 }')
 cracked=0
 last=$(head -n1 $1)
-fucked="notyet"
+cracked="notyet"
 while [[ $original != $cracked ]]; do
   for a in $(tac $1); do
     python3 SuperSecureCrypt.py -o crack.txt -k $a -i check.txt > /dev/null
@@ -408,12 +408,12 @@ while [[ $original != $cracked ]]; do
       echo "found passphrase: [[ ${a} ]]"
     elif [[ $a == $last ]]; then
       echo "no luck with $1"
-      fucked="yes"
+      cracked="yes"
     else
       echo "not it { $a }"
     fi
   done
-  if [[ $fucked == "yes" ]]; then
+  if [[ $cracked == "yes" ]]; then
     break
   fi
 done
