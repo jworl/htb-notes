@@ -565,7 +565,7 @@ if args.q == "suckit":
 ```
 
 Here we goooooooo<br>
-<img src="Obscurity/anti-crypt.png"><br>
+<img src="anti-crypt.png"><br>
 
 wonk wonk wonkkkkk. There must be something to this. Oh right. There was another file in robert's home directory-- `passwordreminder.txt`. Copy that file to our kali workstation, run it through the original SuperSecuryCrypt.py code and use our cracked passphrase.<br>
-<img src="Obscurity/we-are-in.png"><br>
+<img src="we-are-in.png"><br>
